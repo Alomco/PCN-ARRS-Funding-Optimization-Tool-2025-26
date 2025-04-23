@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCN ARRS Funding Optimization Tool 2025/26</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- PRINT STYLES: clean up for PDF -->
+    <style media="print">
+        /* 1) Hide only the bits you don't want */
+        #calculation-options,
+        .tabs,
+        .btn-container,
+        #pcn-modal {
+          display: none !important;
+        }
+      
+        /* 2) Show and pin your existing header & footer */
+        .header, .footer {
+          display: block !important;
+          position: fixed !important;
+          left: 0; right: 0;
+          background: white;
+          z-index: 999;
+          border: none; /* or your existing borders */
+          padding: 5px 10px; /* adjust to match your screen */
+          font-size: 9pt;
+          color: #444;
+        }
+        .header { top: 0; border-bottom: 1px solid #ccc; }
+        .footer { bottom: 0; border-top: 1px solid #ccc; text-align: right; }
+      
+        /* 3) Push page content below/above header/footer */
+        body {
+          margin-top: 60px !important; /* should equal .header height + padding */
+          margin-bottom: 40px !important; /* should equal .footer height + padding */
+        }
+      
+        /* 4) Condense your form sections */
+        #pcn-selection .form-col,
+        #population-data .form-col,
+        #arrs-parameters .form-col {
+          display: inline-block !important;
+          margin: 0 1em 0 0 !important;
+          border: none !important;
+          padding: 0 !important;
+        }
+        #pcn-selection label,
+        #population-data label,
+        #arrs-parameters label {
+          font-weight: bold;
+          margin-right: .25em;
+        }
+        #pcn-selection input,
+        #population-data input,
+        #arrs-parameters input,
+        #pcn-selection select {
+          border: none !important;
+          background: transparent !important;
+          width: auto !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          font-size: .9em;
+        }
+      
+        /* 5) Tighter tables */
+        #results-container table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          margin-bottom: 6px !important;
+          font-size: 8pt !important;
+        }
+        th, td {
+          border: 1px solid #666 !important;
+          padding: 3px 4px !important;
+          text-align: left !important;
+        }
+      
+        /* 6) Show all tabs */
+        #role-breakdown-tab,
+        #optimization-tab,
+        #chart-tab {
+          display: block !important;
+          page-break-inside: avoid;
+          margin-bottom: 6px !important;
+        }
+        #chart-tab canvas {
+          max-width: 100% !important;
+          height: auto !important;
+        }
+      
+        /* 7) Additional info at the end */
+        #additional-info {
+          page-break-before: always !important;
+          font-size: 8pt !important;
+          margin-top: 10px !important;
+        }
+        .footer {
+          display: block !important;
+          position: fixed !important;
+          bottom: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          background: white !important;
+          padding: 5px 10px !important;
+          border-top: 1px solid #ccc !important;
+          font-size: 8pt !important;
+          text-align: right !important;
+          z-index: 9999 !important;
+        }
+
+        /* Make room for it by increasing the bottom margin */
+        body {
+          margin-bottom: 50px !important; /* adjust if your footer is taller */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="font-size:2.25em;font-weight:bold; margin: 0;">
+                PCN ARRS Funding Optimization Tool 2025/26
+            </h1>
+            <div class="subtitle" style="margin:0;">
+                <p>Calculate your PCN's optimal ARRS funding allocation for 2025/26</p>
+            </div>
+            <div class="powered-by" style="margin:0;">
+                <p>Powered by <a href="https://www.pcnd.info" target="_blank" style="color: white; text-decoration: underline;">www.pcnd.info</a></p>
+            </div>
+            <p class="print-meta no-print-screen" style="margin: 0;"><!-- filled in by JS --></p>
+        </div>
+
+        <!-- PCN Selection Section -->
+        <div class="section" id="pcn-selection">
+            <h2>PCN Selection</h2>
+            <div class="section-content">
+                <div class="form-row">
+                    <div class="form-col form-col-small">
+                        <label for="region">Region/Location:
+                            <div class="tooltip">
+                                <span>?</span>
+                                <span class="tooltiptext">Select your NHS region to filter available PCNs. This helps narrow down the PCN selection to your specific geographic area.</span>
+                            </div>
+                        </label>
+                        <select id="region" class="input-orange">
+                            <option value="">Select a region...</option>
+                        </select>
+                    </div>
+                    <div class="form-col form-col-small">
+                        <label for="icb-name">ICB Name:
+                            <div class="tooltip"><span>?</span><span class="tooltiptext">
+                                (Optional) Filter PCNs by your Integrated Care Board.
+                            </span></div>
+                        </label>
+                        <select id="icb-name" class="input-orange">
+                            <option value="">All ICBs...</option>
+                            <!-- populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-col form-col-large">
+                        <label for="pcn-display">PCN Name:
+                            <div class="tooltip">
+                                <span>?</span>
+                                <span class="tooltiptext">The name of your Primary Care Network. Click to select from the available PCNs in your region.</span>
+                            </div>
+                        </label>
+                        <div class="pcn-select-container">
+                            <input type="text" id="pcn-display" class="input-orange" readonly placeholder="Click to select PCN...">
+                            <input type="hidden" id="pcn-name-hidden">
+                        </div>
+                    </div>
+                    <div class="form-col form-col-small">
+                        <label for="pcn-code">PCN Code:
+                            <div class="tooltip">
+                                <span>?</span>
+                                <span class="tooltiptext">The unique identifier code for your PCN. This will be automatically populated when you select a PCN.</span>
+                            </div>
+                        </label>
+                        <input type="text" id="pcn-code" class="input-orange" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Population Data Section -->
+        <div class="section" id="population-data">
+            <h2>Population Data</h2>
+            <div class="section-content">
+                <div class="form-row">
+                    <div class="form-col form-col-vertical">
+                        <label for="raw-list-size">Raw List Size (1 Jan 2025):
+                            <div class="tooltip">
+                                <span>?</span>
+                                <span class="tooltiptext">The total number of patients registered with the practices in your PCN as of January 1, 2025.</span>
+                            </div>
+                        </label>
+                        <input type="number" id="raw-list-size" class="input-green" min="0" step="1">
+                    </div>
+                    <div class="form-col form-col-vertical">
+                        <label for="adjusted-population">Adjusted/Weighted Population:
+                            <div class="tooltip">
+                                <span>?</span>
+                                <span class="tooltiptext">The weighted population figure for your PCN, which takes into account factors such as age, deprivation, and rurality.</span>
+                            </div>
+                        </label>
+                        <input type="number" id="adjusted-population" class="input-green" min="0" step="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ARRS Funding Parameters Section -->
+        <div class="section" id="arrs-parameters">
+            <h2>ARRS Funding Parameters</h2>
+            <div class="section-content">
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="max-arrs-allocation">Maximum ARRS Allocation:
+                            <div class="tooltip">
+                                <span>?</span>
+                                <span class="tooltiptext">The maximum ARRS funding available to your PCN for 2025/26, calculated based on your weighted population.</span>
+                            </div>
+                        </label>
+                        <input type="text" id="max-arrs-allocation" class="input-blue" readonly>
+                    </div>
+                    <div class="form-col">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="london-weighting">
+                            <label for="london-weighting">Apply London Weighting
+                                <div class="tooltip">
+                                    <span>?</span>
+                                    <span class="tooltiptext">Check this box if your PCN is in London to apply the appropriate salary adjustments for London weighting.</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Selection Section -->
+        <div class="section" id="role-selection">
+            <h2>Role Selection</h2>
+            <div class="section-content">
+                <p class="info-note">Select the roles you want to include in your ARRS funding calculation and enter the number of Full Time Equivalents (FTEs) for each role.</p>
+                
+                <div class="table-container">
+                    <table id="roles-table">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Include</th>
+                                <th>FTE</th>
+                                <th>Salary Cost (£)</th>
+                                <th>Total Cost (£)</th>
+                                <th>Reimbursement (£)</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated dynamically by JavaScript -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-right"><strong>Total:</strong></td>
+                                <td id="total-cost">£0.00</td>
+                                <td id="total-reimbursement">£0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-right"><strong>Remaining ARRS Budget:</strong></td>
+                                <td colspan="3" id="remaining-budget">£0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculation Options Section -->
+        <div class="section" id="calculation-options">
+            <h2>Optimization Strategy</h2>
+            <div class="section-content">
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="optimization-strategy">Select Optimization Strategy:
+                            <div class="tooltip">
+                                <span>?</span>
+                                <span class="tooltiptext">Choose how you want to optimize your ARRS funding allocation based on your PCN's priorities.</span>
+                            </div>
+                        </label>
+                        <select id="optimization-strategy" class="input-purple">
+                            <option value="maximize-roles">Maximize Number of Roles</option>
+                            <option value="clinical-priority">Prioritize Clinical Roles</option>
+                            <option value="balanced">Balanced Approach</option>
+                            <option value="custom">Custom Prioritization</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="custom-priorities" class="form-row" style="display: none;">
+                    <div class="form-col">
+                        <h4>Role Priorities (1-10):</h4>
+                        <div class="priorities-container">
+                            <!-- Populated dynamically by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculate Button -->
+        <div class="btn-container">
+            <button id="calculate-btn" class="btn btn-primary">Calculate Funding</button>
+            <button id="reset-btn" class="btn btn-secondary">Reset</button>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="spinner"></div>
+
+        <!-- Results Section -->
+        <div id="results-container" class="results-container">
+            <div class="section">
+                <h2>Funding Results</h2>
+                <div class="section-content">
+                    <!-- Summary -->
+                    <div class="results-summary">
+                        <div class="results-total">
+                            Total ARRS Funding Claimed: <span id="total-funding">£0.00</span>
+                        </div>
+                        <p>Remaining/Unused Funding: <span id="unused-funding">£0.00</span></p>
+                        <p>Percentage of Maximum Allocation Used: <span id="percentage-used">0%</span></p>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="tabs">
+                        <div class="tab active" data-tab="role-breakdown-tab">Role Breakdown</div>
+                        <div class="tab" data-tab="optimization-tab">Optimization Suggestions</div>
+                        <div class="tab" data-tab="chart-tab">Funding Chart</div>
+                    </div>
+
+                    <!-- Tab Contents -->
+                    <div id="role-breakdown-tab" class="tab-content active">
+                        <div class="table-container">
+                            <table id="role-breakdown">
+                                <thead>
+                                    <tr>
+                                        <th>Role</th>
+                                        <th>FTE</th>
+                                        <th>Salary Cost (£)</th>
+                                        <th>On-costs (£)</th>
+                                        <th>Total Cost (£)</th>
+                                        <th>Reimbursement (£)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated dynamically by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="optimization-tab" class="tab-content">
+                        <h3>Optimization Suggestions</h3>
+                        <div id="optimization-suggestions">
+                            <!-- Populated dynamically by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div id="chart-tab" class="tab-content">
+                        <div class="chart-container">
+                            <canvas id="funding-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Options -->
+        <div class="btn-container">
+            <button id="export-pdf" class="btn btn-secondary">Export to PDF</button>
+            <button id="export-csv" class="btn btn-secondary">Export to CSV</button>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>&copy; 2025 PCN ARRS Funding Optimization Tool. All calculations based on NHS England ARRS funding guidelines for 2025/26.</p>
+            <div class="footer-links">
+                <a href="#" id="terms-link">Terms of Use</a>
+                <a href="#" id="privacy-link">Privacy Policy</a>
+                <a href="#" id="contact-link">Contact Us</a>
+            </div>
+        </div>
+
+        <!-- PCN Selection Modal -->
+        <div id="pcn-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Select your PCN</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <input type="text" id="pcn-modal-search" class="modal-search" placeholder="Search for your PCN...">
+                <div class="pcn-list" id="pcn-list">
+                    <!-- Populated dynamically by JavaScript -->
+                </div>
+                <button class="select-pcn-btn" id="select-pcn-btn">Select PCN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="scripts.js"></script>
+    <script src="export.js"></script>
+</body>
+
+</html>
