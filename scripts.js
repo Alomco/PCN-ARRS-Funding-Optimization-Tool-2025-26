@@ -32,6 +32,10 @@ const exportPdfBtn = document.getElementById('export-pdf');
 const exportCsvBtn = document.getElementById('export-csv');
 const tabs = document.querySelectorAll('.tab');
 const tabContents = document.querySelectorAll('.tab-content');
+const addRoleBtn = document.getElementById('add-role-btn');
+const addRoleModal = document.getElementById('add-role-modal');
+const roleSelect = document.getElementById('role-select');
+const addRoleConfirmBtn = document.getElementById('add-role-confirm-btn');
 
 // Constants for ARRS Funding 2025/26
 const ARRS_FUNDING = {
@@ -46,178 +50,242 @@ const REIMBURSABLE_ROLES = [
         id: 'gp',
         title: 'GP',
         baseSalary: 82418,
+        minSalary: 73113, // Lower end of BMA salaried GP pay range
+        maxSalary: 91723, // Higher end of BMA salaried GP pay range
         onCostsFactor: 0.25, // Employer on-costs as percentage
         maxReimbursement: 1.0, // 100% reimbursement
         restrictions: 'Within 2 years of CCT date, not previously employed as GP',
         clinicalPriority: 10, // 1-10 scale for optimization
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Medical'
     },
     {
         id: 'enhanced_practice_nurse',
         title: 'Enhanced Practice Nurse',
         baseSalary: 64907,
+        minSalary: 58972, // Band 8a lower
+        maxSalary: 70842, // Band 8a upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: 'Not held post within PCN in last 12 months',
         clinicalPriority: 9,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 8a'
     },
     {
         id: 'new_practice_nurse',
         title: 'New to General Practice Nurse',
         baseSalary: 45000, // Estimated based on typical band 6 nurse salary
+        minSalary: 40057, // Band 6 lower
+        maxSalary: 49943, // Band 6 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: 'Not held post within PCN in last 12 months',
         clinicalPriority: 8,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 6'
     },
     {
         id: 'clinical_pharmacist',
         title: 'Clinical Pharmacist',
         baseSalary: 55670,
+        minSalary: 47126, // Band 7 lower
+        maxSalary: 64214, // Band 7 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 8,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 7'
     },
     {
         id: 'pharmacy_technician',
         title: 'Pharmacy Technician',
         baseSalary: 35389,
+        minSalary: 32306, // Band 5 lower
+        maxSalary: 38472, // Band 5 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 6,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 5'
     },
     {
         id: 'social_prescriber',
         title: 'Social Prescribing Link Worker',
         baseSalary: 35389,
+        minSalary: 32306, // Band 5 lower
+        maxSalary: 38472, // Band 5 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 5,
-        category: 'non-clinical'
+        category: 'non-clinical',
+        band: 'Band 5'
     },
     {
         id: 'health_coach',
         title: 'Health and Wellbeing Coach',
         baseSalary: 35389,
+        minSalary: 32306, // Band 5 lower
+        maxSalary: 38472, // Band 5 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 5,
-        category: 'non-clinical'
+        category: 'non-clinical',
+        band: 'Band 5'
     },
     {
         id: 'care_coordinator',
         title: 'Care Coordinator',
         baseSalary: 29018,
+        minSalary: 26447, // Band 4 lower
+        maxSalary: 31589, // Band 4 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 4,
-        category: 'non-clinical'
+        category: 'non-clinical',
+        band: 'Band 4'
     },
     {
         id: 'physician_associate',
         title: 'Physician Associate',
         baseSalary: 55670,
+        minSalary: 47126, // Band 7 lower
+        maxSalary: 64214, // Band 7 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 9,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 7'
     },
     {
         id: 'first_contact_physio',
         title: 'First Contact Physiotherapist',
         baseSalary: 55670,
+        minSalary: 47126, // Band 7 lower
+        maxSalary: 64214, // Band 7 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 8,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 7'
     },
     {
         id: 'dietitian',
         title: 'Dietitian',
         baseSalary: 55670,
+        minSalary: 47126, // Band 7 lower
+        maxSalary: 64214, // Band 7 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 7,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 7'
     },
     {
         id: 'podiatrist',
         title: 'Podiatrist',
         baseSalary: 55670,
+        minSalary: 47126, // Band 7 lower
+        maxSalary: 64214, // Band 7 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 7,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 7'
     },
     {
         id: 'occupational_therapist',
         title: 'Occupational Therapist',
         baseSalary: 55670,
+        minSalary: 47126, // Band 7 lower
+        maxSalary: 64214, // Band 7 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 7,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 7'
     },
     {
         id: 'mental_health_practitioner',
         title: 'Mental Health Practitioner',
         baseSalary: 55670,
+        minSalary: 47126, // Band 7 lower
+        maxSalary: 64214, // Band 7 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 8,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 7'
     },
     {
         id: 'paramedic',
         title: 'Community Paramedic',
         baseSalary: 55670,
+        minSalary: 47126, // Band 7 lower
+        maxSalary: 64214, // Band 7 upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 9,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 7'
     },
     {
         id: 'advanced_practitioner',
         title: 'Advanced Practitioner',
         baseSalary: 65000,
+        minSalary: 58972, // Band 8a lower
+        maxSalary: 70842, // Band 8a upper
         onCostsFactor: 0.25,
         maxReimbursement: 1.0,
         restrictions: '',
         clinicalPriority: 10,
-        category: 'clinical'
+        category: 'clinical',
+        band: 'Band 8a'
     }
 ];
 
 let pcnData = [];
 let pieChart = null;
 let selectedRoles = [];
+let roleCounter = 0; // Counter for unique role IDs
 
 document.addEventListener('DOMContentLoaded', function() {
     try {
         loadPcnDataFromCsv();
         setupEventListeners();
         populateRolesTable();
+        populateRoleSelect(); // Add this line to populate the role select dropdown
     } catch (error) {
         console.error('Initialization error:', error);
         alert('Failed to initialize the calculator. Please check the console for details.');
     }
 });
+
+// Function to populate the role select dropdown
+function populateRoleSelect() {
+    // Clear existing options
+    roleSelect.innerHTML = '';
+    
+    // Add options for each role
+    REIMBURSABLE_ROLES.forEach(role => {
+        const option = document.createElement('option');
+        option.value = role.id;
+        option.textContent = role.title;
+        roleSelect.appendChild(option);
+    });
+}
 
 async function loadPcnDataFromCsv() {
     try {
@@ -422,100 +490,199 @@ function populateIcbNames() {
 function populateRolesTable() {
     rolesTableBody.innerHTML = '';
     
-    REIMBURSABLE_ROLES.forEach(role => {
-        const row = document.createElement('tr');
-        row.dataset.roleId = role.id;
-        
-        // Role name
-        const nameCell = document.createElement('td');
-        nameCell.textContent = role.title;
-        row.appendChild(nameCell);
-        
-        // Include checkbox
-        const includeCell = document.createElement('td');
-        const includeCheckbox = document.createElement('input');
-        includeCheckbox.type = 'checkbox';
-        includeCheckbox.id = `include-${role.id}`;
-        includeCheckbox.classList.add('role-include');
-        includeCheckbox.addEventListener('change', updateCalculations);
-        includeCell.appendChild(includeCheckbox);
-        row.appendChild(includeCell);
-        
-        // FTE input
-        const fteCell = document.createElement('td');
-        const fteInput = document.createElement('input');
-        fteInput.type = 'number';
-        fteInput.id = `fte-${role.id}`;
-        fteInput.classList.add('role-fte');
-        fteInput.min = '0';
-        fteInput.step = '0.1';
-        fteInput.value = '0';
-        fteInput.disabled = true;
-        fteInput.addEventListener('input', updateCalculations);
-        fteCell.appendChild(fteInput);
-        row.appendChild(fteCell);
-        
-        // Salary cost
-        const salaryCell = document.createElement('td');
-        salaryCell.id = `salary-${role.id}`;
-        salaryCell.textContent = formatCurrency(role.baseSalary);
-        row.appendChild(salaryCell);
-        
-        // Total cost
-        const totalCostCell = document.createElement('td');
-        totalCostCell.id = `total-cost-${role.id}`;
-        totalCostCell.textContent = '£0.00';
-        row.appendChild(totalCostCell);
-        
-        // Reimbursement
-        const reimbursementCell = document.createElement('td');
-        reimbursementCell.id = `reimbursement-${role.id}`;
-        reimbursementCell.textContent = '£0.00';
-        row.appendChild(reimbursementCell);
-        
-        // Notes
-        const notesCell = document.createElement('td');
-        notesCell.textContent = role.restrictions || 'No restrictions';
-        row.appendChild(notesCell);
-        
-        rolesTableBody.appendChild(row);
-        
-        // Add event listener to enable/disable FTE input based on checkbox
-        includeCheckbox.addEventListener('change', function() {
-            fteInput.disabled = !this.checked;
-            if (this.checked && fteInput.value === '0') {
-                fteInput.value = '1';
-            }
-            updateCalculations();
-        });
-    });
+    // Add "Add Role" button row
+    const addRoleRow = document.createElement('tr');
+    addRoleRow.id = 'add-role-row';
     
-    // Populate custom priorities container
-    populateCustomPriorities();
+    const addRoleCell = document.createElement('td');
+    addRoleCell.colSpan = 7;
+    
+    const addRoleBtn = document.createElement('button');
+    addRoleBtn.id = 'add-role-btn';
+    addRoleBtn.className = 'btn btn-secondary add-role-btn';
+    addRoleBtn.textContent = '+ Add Role';
+    addRoleBtn.addEventListener('click', showAddRoleModal);
+    
+    addRoleCell.appendChild(addRoleBtn);
+    addRoleRow.appendChild(addRoleCell);
+    rolesTableBody.appendChild(addRoleRow);
 }
 
-function populateCustomPriorities() {
-    prioritiesContainer.innerHTML = '';
+function showAddRoleModal() {
+    // Show the existing modal instead of creating a new one
+    addRoleModal.style.display = 'block';
+}
+
+function addRoleToTable(role) {
+    roleCounter++;
+    const uniqueId = `${role.id}_${roleCounter}`;
     
-    REIMBURSABLE_ROLES.forEach(role => {
-        const priorityDiv = document.createElement('div');
-        priorityDiv.classList.add('priority-item');
-        
-        const label = document.createElement('label');
-        label.htmlFor = `priority-${role.id}`;
-        label.textContent = role.title;
-        
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.id = `priority-${role.id}`;
-        input.min = '1';
-        input.max = '10';
-        input.value = role.clinicalPriority;
-        
-        priorityDiv.appendChild(label);
-        priorityDiv.appendChild(input);
-        prioritiesContainer.appendChild(priorityDiv);
+    const row = document.createElement('tr');
+    row.dataset.roleId = uniqueId;
+    row.dataset.baseRoleId = role.id;
+    
+    // Role name
+    const nameCell = document.createElement('td');
+    nameCell.textContent = role.title;
+    row.appendChild(nameCell);
+    
+    // Include checkbox
+    const includeCell = document.createElement('td');
+    const includeCheckbox = document.createElement('input');
+    includeCheckbox.type = 'checkbox';
+    includeCheckbox.id = `include-${uniqueId}`;
+    includeCheckbox.classList.add('role-include');
+    includeCheckbox.checked = true; // Auto-check when adding a new role
+    includeCheckbox.addEventListener('change', updateCalculations);
+    includeCell.appendChild(includeCheckbox);
+    row.appendChild(includeCell);
+    
+    // FTE input
+    const fteCell = document.createElement('td');
+    const fteInput = document.createElement('input');
+    fteInput.type = 'number';
+    fteInput.id = `fte-${uniqueId}`;
+    fteInput.classList.add('role-fte');
+    fteInput.min = '0';
+    fteInput.step = '0.1';
+    fteInput.value = '1';
+    fteInput.addEventListener('input', updateCalculations);
+    fteCell.appendChild(fteInput);
+    row.appendChild(fteCell);
+    
+    // Salary input with slider
+    const salaryCell = document.createElement('td');
+    salaryCell.className = 'salary-cell';
+    
+    // Create salary slider container
+    const sliderContainer = document.createElement('div');
+    sliderContainer.className = 'salary-slider-container';
+    
+    // Create salary display
+    const salaryDisplay = document.createElement('div');
+    salaryDisplay.id = `salary-${uniqueId}`;
+    salaryDisplay.className = 'salary-display';
+    salaryDisplay.textContent = formatCurrency(role.baseSalary);
+    
+    // Create salary range info
+    const salaryRangeInfo = document.createElement('div');
+    salaryRangeInfo.className = 'salary-range-info';
+    salaryRangeInfo.textContent = `${role.band}: ${formatCurrency(role.minSalary)} - ${formatCurrency(role.maxSalary)}`;
+    
+    // Create salary slider
+    const salarySlider = document.createElement('input');
+    salarySlider.type = 'range';
+    salarySlider.id = `salary-slider-${uniqueId}`;
+    salarySlider.className = 'salary-slider';
+    salarySlider.min = role.minSalary;
+    salarySlider.max = role.maxSalary;
+    salarySlider.step = '100';
+    salarySlider.value = role.baseSalary;
+    
+    // Create custom salary input
+    const customSalaryContainer = document.createElement('div');
+    customSalaryContainer.className = 'custom-salary-container';
+    
+    const customSalaryCheckbox = document.createElement('input');
+    customSalaryCheckbox.type = 'checkbox';
+    customSalaryCheckbox.id = `custom-salary-checkbox-${uniqueId}`;
+    customSalaryCheckbox.className = 'custom-salary-checkbox';
+    
+    const customSalaryLabel = document.createElement('label');
+    customSalaryLabel.htmlFor = `custom-salary-checkbox-${uniqueId}`;
+    customSalaryLabel.textContent = 'Custom:';
+    
+    const customSalaryInput = document.createElement('input');
+    customSalaryInput.type = 'number';
+    customSalaryInput.id = `custom-salary-${uniqueId}`;
+    customSalaryInput.className = 'custom-salary-input';
+    customSalaryInput.min = '0';
+    customSalaryInput.step = '100';
+    customSalaryInput.value = role.baseSalary;
+    customSalaryInput.disabled = true;
+    
+    customSalaryContainer.appendChild(customSalaryCheckbox);
+    customSalaryContainer.appendChild(customSalaryLabel);
+    customSalaryContainer.appendChild(customSalaryInput);
+    
+    // Add event listeners
+    salarySlider.addEventListener('input', function() {
+        salaryDisplay.textContent = formatCurrency(this.value);
+        customSalaryInput.value = this.value;
+        updateCalculations();
     });
+    
+    customSalaryCheckbox.addEventListener('change', function() {
+        customSalaryInput.disabled = !this.checked;
+        salarySlider.disabled = this.checked;
+        if (this.checked) {
+            salaryDisplay.textContent = formatCurrency(customSalaryInput.value);
+        } else {
+            salaryDisplay.textContent = formatCurrency(salarySlider.value);
+            customSalaryInput.value = salarySlider.value;
+        }
+        updateCalculations();
+    });
+    
+    customSalaryInput.addEventListener('input', function() {
+        salaryDisplay.textContent = formatCurrency(this.value);
+        updateCalculations();
+    });
+    
+    // Assemble salary cell
+    sliderContainer.appendChild(salaryDisplay);
+    sliderContainer.appendChild(salaryRangeInfo);
+    sliderContainer.appendChild(salarySlider);
+    salaryCell.appendChild(sliderContainer);
+    salaryCell.appendChild(customSalaryContainer);
+    row.appendChild(salaryCell);
+    
+    // Total cost
+    const totalCostCell = document.createElement('td');
+    totalCostCell.id = `total-cost-${uniqueId}`;
+    totalCostCell.textContent = '£0.00';
+    row.appendChild(totalCostCell);
+    
+    // Reimbursement
+    const reimbursementCell = document.createElement('td');
+    reimbursementCell.id = `reimbursement-${uniqueId}`;
+    reimbursementCell.textContent = '£0.00';
+    row.appendChild(reimbursementCell);
+    
+    // Actions column
+    const actionsCell = document.createElement('td');
+    
+    // Notes/restrictions tooltip
+    const notesIcon = document.createElement('span');
+    notesIcon.className = 'notes-icon tooltip';
+    notesIcon.innerHTML = '<span>?</span>';
+    
+    const tooltipText = document.createElement('span');
+    tooltipText.className = 'tooltiptext';
+    tooltipText.textContent = role.restrictions || 'No restrictions';
+    
+    notesIcon.appendChild(tooltipText);
+    
+    // Delete button
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete-role-btn';
+    deleteBtn.innerHTML = '&times;';
+    deleteBtn.title = 'Remove role';
+    deleteBtn.addEventListener('click', function() {
+        row.remove();
+        updateCalculations();
+    });
+    
+    actionsCell.appendChild(notesIcon);
+    actionsCell.appendChild(deleteBtn);
+    row.appendChild(actionsCell);
+    
+    // Insert the new row before the "Add Role" row
+    const addRoleRow = document.getElementById('add-role-row');
+    rolesTableBody.insertBefore(row, addRoleRow);
+    
+    // Update calculations
+    updateCalculations();
 }
 
 function setupEventListeners() {
@@ -563,6 +730,31 @@ function setupEventListeners() {
     
     exportPdfBtn.addEventListener('click', exportToPdf);
     exportCsvBtn.addEventListener('click', exportToCsv);
+    
+    // Add event listener for the Add Role Confirm button
+    addRoleConfirmBtn.addEventListener('click', function() {
+        const selectedRoleId = roleSelect.value;
+        const selectedRole = REIMBURSABLE_ROLES.find(role => role.id === selectedRoleId);
+        if (selectedRole) {
+            addRoleToTable(selectedRole);
+            addRoleModal.style.display = 'none';
+        }
+    });
+    
+    // Close modal when clicking on X
+    const closeButtons = document.querySelectorAll('.modal .close');
+    closeButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.modal').style.display = 'none';
+        });
+    });
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    });
 }
 
 function openPcnModal() {
@@ -680,31 +872,51 @@ function updateCalculations() {
     
     selectedRoles = [];
     
-    REIMBURSABLE_ROLES.forEach(role => {
-        const includeCheckbox = document.getElementById(`include-${role.id}`);
-        const fteInput = document.getElementById(`fte-${role.id}`);
-        const salaryCell = document.getElementById(`salary-${role.id}`);
-        const totalCostCell = document.getElementById(`total-cost-${role.id}`);
-        const reimbursementCell = document.getElementById(`reimbursement-${role.id}`);
+    // Get all role rows
+    const roleRows = rolesTableBody.querySelectorAll('tr:not(#add-role-row)');
+    
+    roleRows.forEach(row => {
+        const uniqueId = row.dataset.roleId;
+        const baseRoleId = row.dataset.baseRoleId;
+        const baseRole = REIMBURSABLE_ROLES.find(r => r.id === baseRoleId);
         
-        if (includeCheckbox.checked) {
+        if (!baseRole || !uniqueId) return;
+        
+        const includeCheckbox = document.getElementById(`include-${uniqueId}`);
+        const fteInput = document.getElementById(`fte-${uniqueId}`);
+        const salaryDisplay = document.getElementById(`salary-${uniqueId}`);
+        const totalCostCell = document.getElementById(`total-cost-${uniqueId}`);
+        const reimbursementCell = document.getElementById(`reimbursement-${uniqueId}`);
+        const customSalaryCheckbox = document.getElementById(`custom-salary-checkbox-${uniqueId}`);
+        const customSalaryInput = document.getElementById(`custom-salary-${uniqueId}`);
+        const salarySlider = document.getElementById(`salary-slider-${uniqueId}`);
+        
+        if (includeCheckbox && includeCheckbox.checked) {
             const fte = parseFloat(fteInput.value) || 0;
             
+            // Get salary based on slider or custom input
+            let baseSalary;
+            if (customSalaryCheckbox && customSalaryCheckbox.checked) {
+                baseSalary = parseFloat(customSalaryInput.value) || baseRole.baseSalary;
+            } else {
+                baseSalary = parseFloat(salarySlider.value) || baseRole.baseSalary;
+            }
+            
             // Apply London weighting if applicable
-            let adjustedSalary = role.baseSalary;
+            let adjustedSalary = baseSalary;
             if (isLondon) {
                 adjustedSalary *= (1 + ARRS_FUNDING.LONDON_WEIGHTING_FACTOR);
             }
             
             // Update salary display
-            salaryCell.textContent = formatCurrency(adjustedSalary);
+            salaryDisplay.textContent = formatCurrency(adjustedSalary);
             
             // Calculate total cost including on-costs
-            const roleCost = calculateRoleCost(role, fte, isLondon);
+            const roleCost = adjustedSalary * (1 + baseRole.onCostsFactor) * fte;
             totalCostCell.textContent = formatCurrency(roleCost);
             
             // Calculate reimbursement
-            const reimbursement = roleCost * role.maxReimbursement;
+            const reimbursement = roleCost * baseRole.maxReimbursement;
             reimbursementCell.textContent = formatCurrency(reimbursement);
             
             // Add to totals
@@ -713,13 +925,15 @@ function updateCalculations() {
             
             // Add to selected roles
             selectedRoles.push({
-                ...role,
+                ...baseRole,
+                uniqueId,
                 fte,
+                baseSalary,
                 adjustedSalary,
                 totalCost: roleCost,
                 reimbursement
             });
-        } else {
+        } else if (totalCostCell && reimbursementCell) {
             // Reset cells if not included
             totalCostCell.textContent = '£0.00';
             reimbursementCell.textContent = '£0.00';
@@ -741,20 +955,6 @@ function updateCalculations() {
     } else {
         remainingBudgetElement.classList.remove('over-budget');
     }
-}
-
-function calculateRoleCost(role, fte, isLondon) {
-    let baseSalary = role.baseSalary;
-    
-    // Apply London weighting if applicable
-    if (isLondon) {
-        baseSalary *= (1 + ARRS_FUNDING.LONDON_WEIGHTING_FACTOR);
-    }
-    
-    // Calculate total cost including on-costs
-    const totalCost = baseSalary * (1 + role.onCostsFactor) * fte;
-    
-    return totalCost;
 }
 
 function calculateFunding() {
@@ -820,11 +1020,7 @@ function validateInputs() {
     }
     
     // Check if at least one role is selected
-    const anyRoleSelected = REIMBURSABLE_ROLES.some(role => 
-        document.getElementById(`include-${role.id}`).checked
-    );
-    
-    if (!anyRoleSelected) {
+    if (selectedRoles.length === 0) {
         alert('Please select at least one role to include in the calculation.');
         return false;
     }
@@ -955,8 +1151,8 @@ function optimizeRoleMix(strategy, remainingBudget) {
         case 'maximize-roles':
             // Sort by cost (ascending)
             prioritizedRoles = [...availableRoles].sort((a, b) => {
-                const costA = calculateRoleCost(a, 1, isLondon);
-                const costB = calculateRoleCost(b, 1, isLondon);
+                const costA = a.baseSalary * (1 + a.onCostsFactor);
+                const costB = b.baseSalary * (1 + b.onCostsFactor);
                 return costA - costB;
             });
             break;
@@ -967,8 +1163,8 @@ function optimizeRoleMix(strategy, remainingBudget) {
                 if (b.clinicalPriority !== a.clinicalPriority) {
                     return b.clinicalPriority - a.clinicalPriority;
                 }
-                const costA = calculateRoleCost(a, 1, isLondon);
-                const costB = calculateRoleCost(b, 1, isLondon);
+                const costA = a.baseSalary * (1 + a.onCostsFactor);
+                const costB = b.baseSalary * (1 + b.onCostsFactor);
                 return costA - costB;
             });
             break;
@@ -979,8 +1175,8 @@ function optimizeRoleMix(strategy, remainingBudget) {
                 if (a.category !== b.category) {
                     return a.category === 'clinical' ? -1 : 1;
                 }
-                const costA = calculateRoleCost(a, 1, isLondon);
-                const costB = calculateRoleCost(b, 1, isLondon);
+                const costA = a.baseSalary * (1 + a.onCostsFactor);
+                const costB = b.baseSalary * (1 + b.onCostsFactor);
                 return costA - costB;
             });
             break;
@@ -988,8 +1184,8 @@ function optimizeRoleMix(strategy, remainingBudget) {
         case 'custom':
             // Sort by custom priorities (descending)
             prioritizedRoles = [...availableRoles].sort((a, b) => {
-                const priorityA = parseInt(document.getElementById(`priority-${a.id}`).value) || 1;
-                const priorityB = parseInt(document.getElementById(`priority-${b.id}`).value) || 1;
+                const priorityA = parseInt(document.getElementById(`priority-${a.id}`)?.value) || a.clinicalPriority;
+                const priorityB = parseInt(document.getElementById(`priority-${b.id}`)?.value) || b.clinicalPriority;
                 return priorityB - priorityA;
             });
             break;
@@ -1000,7 +1196,14 @@ function optimizeRoleMix(strategy, remainingBudget) {
     
     // Find roles that fit within remaining budget
     for (const role of prioritizedRoles) {
-        const costPerFTE = calculateRoleCost(role, 1, isLondon);
+        let baseSalary = role.baseSalary;
+        
+        // Apply London weighting if applicable
+        if (isLondon) {
+            baseSalary *= (1 + ARRS_FUNDING.LONDON_WEIGHTING_FACTOR);
+        }
+        
+        const costPerFTE = baseSalary * (1 + role.onCostsFactor);
         
         if (costPerFTE <= remainingBudget) {
             // Calculate max FTE that fits in budget
@@ -1104,280 +1307,6 @@ function createFundingChart() {
     });
 }
 
-function exportToPdf() {
-    if (!validateResults()) {
-        return;
-    }
-    
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-        });
-        
-        // Constants for layout
-        const pageWidth = 210;
-        const pageHeight = 297;
-        const margin = 15;
-        const contentWidth = pageWidth - 2 * margin;
-        const fontRegular = 'Helvetica';
-        const fontBold = 'Helvetica-Bold';
-        const primaryColor = '#005eb8'; // NHS Blue
-        const secondaryColor = '#003087'; // Darker Blue
-        
-        // Helper functions
-        function addHeader(pageNumber) {
-            doc.setFillColor(primaryColor);
-            doc.rect(0, 0, pageWidth, 15, 'F');
-            doc.setFont(fontRegular, 'normal');
-            doc.setFontSize(10);
-            doc.setTextColor(255, 255, 255);
-            doc.text(`PCN ARRS Funding Optimization Tool 2025/26 - ${pcnNameHidden.value || 'Unnamed PCN'}`, margin, 10);
-            doc.text(`Page ${pageNumber}`, pageWidth - margin - 10, 10, { align: 'right' });
-        }
-        
-        function addFooter() {
-            doc.setFillColor(secondaryColor);
-            doc.rect(0, pageHeight - 10, pageWidth, 10, 'F');
-            doc.setFont(fontRegular, 'normal');
-            doc.setFontSize(8);
-            doc.setTextColor(255, 255, 255);
-            doc.text(
-                `Powered by www.pcnd.info | Generated on ${new Date().toLocaleDateString('en-GB')}`,
-                margin,
-                pageHeight - 3
-            );
-        }
-        
-        function addSectionTitle(title, y) {
-            doc.setFont(fontBold, 'normal');
-            doc.setFontSize(16);
-            doc.setTextColor(secondaryColor);
-            doc.text(title, margin, y);
-            doc.setDrawColor(primaryColor);
-            doc.setLineWidth(0.5);
-            doc.line(margin, y + 2, margin + contentWidth, y + 2);
-            return y + 10;
-        }
-        
-        // Cover Page
-        doc.setFillColor(255, 255, 255);
-        doc.rect(0, 0, pageWidth, pageHeight, 'F');
-        doc.setFont(fontBold, 'normal');
-        doc.setFontSize(28);
-        doc.setTextColor(primaryColor);
-        doc.text('PCN ARRS Funding Report', pageWidth / 2, 80, { align: 'center' });
-        doc.setFontSize(20);
-        doc.text(pcnNameHidden.value || 'Unnamed PCN', pageWidth / 2, 100, { align: 'center' });
-        doc.setFont(fontRegular, 'normal');
-        doc.setFontSize(14);
-        doc.text(`Fiscal Year 2025/26`, pageWidth / 2, 120, { align: 'center' });
-        doc.text(`Generated on ${new Date().toLocaleDateString('en-GB')}`, pageWidth / 2, 130, { align: 'center' });
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor);
-        doc.text('Powered by www.pcnd.info', pageWidth / 2, pageHeight - 25, { align: 'center' });
-        
-        // Page 2: PCN Information and Funding Summary
-        doc.addPage();
-        let currentPage = 2;
-        let yPosition = margin + 10;
-        
-        addHeader(currentPage);
-        addFooter();
-        
-        // PCN Information
-        yPosition = addSectionTitle('PCN Information', yPosition);
-        doc.setFont(fontRegular, 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`PCN Name: ${pcnNameHidden.value || 'Unnamed PCN'}`, margin, yPosition + 10);
-        doc.text(`PCN Code: ${pcnCodeInput.value || 'N/A'}`, margin, yPosition + 20);
-        doc.text(`Raw List Size: ${rawListSizeInput.value || '0'}`, margin, yPosition + 30);
-        doc.text(`Adjusted Population: ${adjustedPopulationInput.value || '0'}`, margin, yPosition + 40);
-        doc.text(`London Weighting Applied: ${londonWeightingCheckbox.checked ? 'Yes' : 'No'}`, margin, yPosition + 50);
-        yPosition += 60;
-        
-        // Funding Summary
-        yPosition = addSectionTitle('Funding Summary', yPosition);
-        doc.setFont(fontBold, 'normal');
-        doc.setFontSize(12);
-        doc.text(`Maximum ARRS Allocation: ${maxArrsAllocationInput.value || '£0.00'}`, margin, yPosition + 10);
-        doc.text(`Total ARRS Funding Claimed: ${totalFundingSpan.textContent || '£0.00'}`, margin, yPosition + 20);
-        doc.text(`Remaining/Unused Funding: ${unusedFundingSpan.textContent || '£0.00'}`, margin, yPosition + 30);
-        doc.text(`Percentage of Maximum Allocation Used: ${percentageUsedSpan.textContent || '0%'}`, margin, yPosition + 40);
-        yPosition += 50;
-        
-        // Page 3: Role Breakdown
-        doc.addPage();
-        currentPage++;
-        yPosition = margin + 10;
-        
-        addHeader(currentPage);
-        addFooter();
-        
-        // Role Breakdown
-        yPosition = addSectionTitle('Role Breakdown', yPosition);
-        
-        // Create role breakdown table
-        const roleData = selectedRoles.map(role => [
-            role.title,
-            role.fte.toFixed(1),
-            formatCurrency(role.adjustedSalary),
-            formatCurrency(role.adjustedSalary * role.onCostsFactor * role.fte),
-            formatCurrency(role.totalCost),
-            formatCurrency(role.reimbursement)
-        ]);
-        
-        doc.autoTable({
-            startY: yPosition + 5,
-            head: [['Role', 'FTE', 'Salary Cost', 'On-costs', 'Total Cost', 'Reimbursement']],
-            body: roleData,
-            theme: 'striped',
-            headStyles: {
-                fillColor: primaryColor,
-                textColor: 255,
-                fontSize: 10,
-                fontStyle: 'bold'
-            },
-            bodyStyles: {
-                fontSize: 9
-            },
-            margin: { left: margin, right: margin },
-            styles: {
-                cellPadding: 3,
-                overflow: 'linebreak'
-            }
-        });
-        
-        yPosition = doc.lastAutoTable.finalY + 10;
-        
-        // Page 4: Funding Chart
-        doc.addPage();
-        currentPage++;
-        yPosition = margin + 10;
-        
-        addHeader(currentPage);
-        addFooter();
-        
-        // Funding Chart
-        yPosition = addSectionTitle('Funding Distribution', yPosition);
-        
-        // Add chart image
-        try {
-            const chartImg = fundingChart.toDataURL('image/png', 1.0);
-            const imgWidth = contentWidth;
-            const imgHeight = imgWidth * (fundingChart.height / fundingChart.width);
-            doc.addImage(chartImg, 'PNG', margin, yPosition + 5, imgWidth, imgHeight);
-            yPosition += imgHeight + 15;
-        } catch (error) {
-            console.error('Error adding chart to PDF:', error);
-            doc.setFont(fontRegular, 'normal');
-            doc.setFontSize(10);
-            doc.text('Chart could not be included in the PDF.', margin, yPosition + 10);
-            yPosition += 20;
-        }
-        
-        // Add optimization suggestions
-        yPosition = addSectionTitle('Optimization Suggestions', yPosition);
-        
-        // Get the text content from the optimization suggestions div
-        const suggestionsText = optimizationSuggestions.textContent.trim();
-        
-        // Add the text to the PDF
-        doc.setFont(fontRegular, 'normal');
-        doc.setFontSize(10);
-        
-        const textLines = doc.splitTextToSize(suggestionsText, contentWidth);
-        doc.text(textLines, margin, yPosition + 10);
-        
-        // Save the PDF
-        const fileName = `PCN_ARRS_Funding_Report_${pcnNameHidden.value || 'Unnamed'}_${new Date().toISOString().split('T')[0]}.pdf`;
-        doc.save(fileName);
-    } catch (error) {
-        console.error('Error generating PDF:', error);
-        alert('An error occurred while generating the PDF. Please try again.');
-    }
-}
-
-function exportToCsv() {
-    if (!validateResults()) {
-        return;
-    }
-    
-    try {
-        let csvContent = 'data:text/csv;charset=utf-8,%EF%BB%BF'; // Add UTF-8 BOM
-        
-        // Helper function to clean and escape CSV values
-        const escapeCsv = (value) => {
-            let cleanedValue = String(value)
-                .replace(/£/g, '') // Remove £ symbol
-                .replace(/,/g, '') // Remove commas
-                .replace(/"/g, '""') // Escape double quotes
-                .replace(/\n/g, ' '); // Replace newlines with spaces
-            return `"${cleanedValue}"`;
-        };
-        
-        // PCN Information
-        csvContent += 'PCN ARRS Funding Report\n';
-        csvContent += `PCN Name,${escapeCsv(pcnNameHidden.value || 'Unnamed PCN')}\n`;
-        csvContent += `PCN Code,${escapeCsv(pcnCodeInput.value || 'N/A')}\n`;
-        csvContent += `Raw List Size,${escapeCsv(rawListSizeInput.value || '0')}\n`;
-        csvContent += `Adjusted Population,${escapeCsv(adjustedPopulationInput.value || '0')}\n`;
-        csvContent += `London Weighting Applied,${escapeCsv(londonWeightingCheckbox.checked ? 'Yes' : 'No')}\n`;
-        csvContent += `Generated Date,${escapeCsv(new Date().toLocaleDateString('en-GB'))}\n\n`;
-        
-        // Funding Summary
-        csvContent += 'Funding Summary\n';
-        csvContent += `Maximum ARRS Allocation,${escapeCsv(maxArrsAllocationInput.value || '£0.00')}\n`;
-        csvContent += `Total ARRS Funding Claimed,${escapeCsv(totalFundingSpan.textContent || '£0.00')}\n`;
-        csvContent += `Remaining/Unused Funding,${escapeCsv(unusedFundingSpan.textContent || '£0.00')}\n`;
-        csvContent += `Percentage of Maximum Allocation Used,${escapeCsv(percentageUsedSpan.textContent || '0%')}\n\n`;
-        
-        // Role Breakdown
-        csvContent += 'Role Breakdown\n';
-        csvContent += 'Role,FTE,Salary Cost,On-costs,Total Cost,Reimbursement\n';
-        
-        selectedRoles.forEach(role => {
-            const onCosts = role.adjustedSalary * role.onCostsFactor * role.fte;
-            csvContent += [
-                escapeCsv(role.title),
-                escapeCsv(role.fte.toFixed(1)),
-                escapeCsv(formatCurrency(role.adjustedSalary)),
-                escapeCsv(formatCurrency(onCosts)),
-                escapeCsv(formatCurrency(role.totalCost)),
-                escapeCsv(formatCurrency(role.reimbursement))
-            ].join(',') + '\n';
-        });
-        
-        // Create download link
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute('download', `PCN_ARRS_Funding_Report_${pcnNameHidden.value || 'Unnamed'}_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        
-        // Trigger download
-        link.click();
-        
-        // Clean up
-        document.body.removeChild(link);
-    } catch (error) {
-        console.error('Error generating CSV:', error);
-        alert('An error occurred while generating the CSV. Please try again.');
-    }
-}
-
-function validateResults() {
-    if (!totalFundingSpan.textContent || totalFundingSpan.textContent === '£0.00') {
-        alert('Please calculate funding first to generate the export.');
-        return false;
-    }
-    
-    return true;
-}
-
 function resetData() {
     // Reset PCN selection
     pcnDisplayInput.value = '';
@@ -1392,20 +1321,9 @@ function resetData() {
     // Reset London weighting
     londonWeightingCheckbox.checked = false;
     
-    // Reset role selection
-    REIMBURSABLE_ROLES.forEach(role => {
-        const includeCheckbox = document.getElementById(`include-${role.id}`);
-        const fteInput = document.getElementById(`fte-${role.id}`);
-        
-        if (includeCheckbox) {
-            includeCheckbox.checked = false;
-        }
-        
-        if (fteInput) {
-            fteInput.value = '0';
-            fteInput.disabled = true;
-        }
-    });
+    // Reset role selection - remove all roles except the add role row
+    const roleRows = rolesTableBody.querySelectorAll('tr:not(#add-role-row)');
+    roleRows.forEach(row => row.remove());
     
     // Reset optimization strategy
     optimizationStrategySelect.value = 'maximize-roles';
@@ -1422,6 +1340,9 @@ function resetData() {
         pieChart.destroy();
         pieChart = null;
     }
+    
+    // Reset role counter
+    roleCounter = 0;
 }
 
 function formatCurrency(value) {

@@ -588,6 +588,87 @@ tr:nth-child(even) {
     font-weight: bold;
 }
 
+/* Add Role Button */
+.add-role-btn {
+    width: 100%;
+    padding: 8px;
+    background-color: var(--nhs-light-green);
+    color: var(--nhs-white);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.add-role-btn:hover {
+    background-color: var(--nhs-green);
+}
+
+/* Salary Slider */
+.salary-cell {
+    min-width: 250px;
+}
+
+.salary-slider-container {
+    margin-bottom: 10px;
+}
+
+.salary-display {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: var(--nhs-blue);
+}
+
+.salary-range-info {
+    font-size: 0.8rem;
+    color: var(--nhs-grey-1);
+    margin-bottom: 5px;
+}
+
+.salary-slider {
+    width: 100%;
+    margin: 10px 0;
+}
+
+.custom-salary-container {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.custom-salary-checkbox {
+    margin-right: 5px;
+}
+
+.custom-salary-input {
+    width: 100px;
+    padding: 5px;
+    margin-left: 5px;
+}
+
+/* Delete Role Button */
+.delete-role-btn {
+    background-color: var(--nhs-red);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.delete-role-btn:hover {
+    background-color: darkred;
+}
+
+.notes-icon {
+    margin-right: 10px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .form-col, .form-col-small, .form-col-large {
@@ -612,6 +693,20 @@ tr:nth-child(even) {
     .tab {
         flex: 1 0 auto;
         text-align: center;
+    }
+    
+    .salary-cell {
+        min-width: auto;
+    }
+    
+    .custom-salary-container {
+        flex-wrap: wrap;
+    }
+    
+    .custom-salary-input {
+        width: 100%;
+        margin-top: 5px;
+        margin-left: 0;
     }
 }
 

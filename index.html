@@ -13,7 +13,11 @@
         #calculation-options,
         .tabs,
         .btn-container,
-        #pcn-modal {
+        #pcn-modal,
+        #add-role-modal,
+        .delete-role-btn,
+        .custom-salary-container,
+        .salary-slider-container {
           display: none !important;
         }
       
@@ -245,7 +249,7 @@
         <div class="section" id="role-selection">
             <h2>Role Selection</h2>
             <div class="section-content">
-                <p class="info-note">Select the roles you want to include in your ARRS funding calculation and enter the number of Full Time Equivalents (FTEs) for each role.</p>
+                <p class="info-note">Select the roles you want to include in your ARRS funding calculation. You can add multiple instances of the same role with different salary levels.</p>
                 
                 <div class="table-container">
                     <table id="roles-table">
@@ -254,10 +258,10 @@
                                 <th>Role</th>
                                 <th>Include</th>
                                 <th>FTE</th>
-                                <th>Salary Cost (£)</th>
+                                <th>Salary</th>
                                 <th>Total Cost (£)</th>
                                 <th>Reimbursement (£)</th>
-                                <th>Notes</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -406,6 +410,23 @@
                     <!-- Populated dynamically by JavaScript -->
                 </div>
                 <button class="select-pcn-btn" id="select-pcn-btn">Select PCN</button>
+            </div>
+        </div>
+        
+        <!-- Add Role Modal -->
+        <div id="add-role-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add Role</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="form-col">
+                    <label for="role-select">Select Role:</label>
+                    <select id="role-select" class="input-blue">
+                        <!-- Populated dynamically by JavaScript -->
+                    </select>
+                </div>
+                <button id="add-role-confirm-btn" class="btn btn-primary">Add Role</button>
             </div>
         </div>
     </div>
